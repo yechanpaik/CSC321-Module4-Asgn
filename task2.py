@@ -9,15 +9,7 @@ import threading
 import concurrent.futures
 import time
 
-
-#defines a Datatype called 'EntryFormat' s.t. 
-# var = EntryFormat(...)
-# var.User = ...
-# var.Algorithm = ...
-# and stuff can be accessed more easily
-EntryFormat = namedtuple('EntryFormat', ['User','Algorthim','Workfactor','SaltHash'])
-
-#nltk.download('words')
+# run the following in terminal once
 # python -c "import nltk; nltk.download('words')"
 
 FILTERED_CORPUS = [word.lower() for word in words.words() if 6 <= len(word) <= 10]
@@ -29,16 +21,13 @@ def load_shadow_file(file_path) -> list[str]:
     with open(file_path, 'r') as f:
         # “User:$Algorithm$Workfactor$SaltHash”
         for lines in f: 
-            # parts = lines.strip().split('$')
-            # if(parts):
-            #     entry = parts
             entry.append(lines.strip())    
     return entry 
 
 def notify():
     while True:
-        time.sleep(5)
-        print(".", end="")
+        time.sleep(60 )
+        print(".", end="", flush=True)
     
 
 def guess(data_split, entry, split_num):
@@ -56,9 +45,8 @@ def guess(data_split, entry, split_num):
     print(f"Entry: {username} | {entry} | Split#{split_num}")
     
     for word in data_split:
-
         if bcrypt.checkpw(word.encode("utf-8"), entry):
-            print(f"match found: {word}")
+            print(f"match found: {username} {word}")
             return word
     
     print("fucked")
@@ -99,7 +87,7 @@ def crack_password(entry):
 
 
 def task_2_main():    
-    shadow_entries = load_shadow_file("shadow2.txt")
+    shadow_entries = load_shadow_file("shadow.txt")
 
     print("Starting password cracking...")
 
