@@ -1,107 +1,131 @@
-from multiprocessing import Pool
+import argparse
 import bcrypt
-import nltk
-from nltk.corpus import words
-import os
-from collections import namedtuple
-import threading
-import concurrent.futures
 import time
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from multiprocessing import Event, Manager
+from typing import List, Tuple
 
-# run the following in terminal once
-# python -c "import nltk; nltk.download('words')"
+def load_shadow_file(path: str) -> List[Tuple[str, str]]:
+    entries = []
+    with open(path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line or ':' not in line:
+                continue
+            user, full_hash = line.split(':', 1)
+            entries.append((user.strip(), full_hash.strip()))
+    return entries
 
-FILTERED_CORPUS = [word.lower() for word in words.words() if 6 <= len(word) <= 10]
+def build_wordlist_nltk(min_len=6, max_len=10) -> List[str]:
+    import nltk
+    from nltk.corpus import words
+    raw = words.words()
+    wl = set()
+    for w in raw:
+        if w.isalpha():
+            wl_w = w.lower()
+            if min_len <= len(wl_w) <= max_len:
+                wl.add(wl_w)
+    return sorted(wl)
 
-def load_shadow_file(file_path) -> list[str]:
-    entry = []
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Shadow not found in ", file_path)
-    with open(file_path, 'r') as f:
-        # “User:$Algorithm$Workfactor$SaltHash”
-        for lines in f: 
-            entry.append(lines.strip())    
-    return entry 
+def load_wordlist_file(path: str, min_len=6, max_len=10) -> List[str]:
+    wl = []
+    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            w = line.strip()
+            if not w: 
+                continue
+            if w.isalpha():
+                w_low = w.lower()
+                if min_len <= len(w_low) <= max_len:
+                    wl.append(w_low)
+    return sorted(set(wl))
 
-def notify():
-    while True:
-        time.sleep(60 )
-        print(".", end="", flush=True)
-    
+def chunkify(lst: List[str], chunk_size: int) -> List[List[str]]:
+    return [lst[i:i+chunk_size] for i in range(0, len(lst), chunk_size)]
 
-def guess(data_split, entry, split_num):
-    # entry = b"$2b$10$L.z8uq99JkFAvX/Q1jGRI.TzrHIIxWMoRi/VzO1sj/UvVFPgW8dW."
-    # word = "secretword"
+def worker_check_chunk(args):
+    chunk, full_hash, stop_event = args
+    attempts = 0
+    full_hash_b = full_hash.encode('utf-8')
+    for w in chunk:
+        if stop_event.is_set():
+            return (None, attempts)
+        attempts += 1
+        if bcrypt.checkpw(w.encode('utf-8'), full_hash_b):
+            stop_event.set()
+            return (w, attempts)
+    return (None, attempts)
 
-    entry = entry.split(":")
-    username = entry[0]
-    entry = entry[1]
-    entry = entry.encode("utf-8")
+def crack_user_parallel(full_hash: str, wordlist: List[str], workers: int, chunk_size: int = 1000):
+    chunks = chunkify(wordlist, chunk_size)
+    manager = Manager()
+    stop_event = manager.Event() 
 
-    notifier_thread = threading.Thread(target=notify, daemon=True)
-    notifier_thread.start()
+    attempts_total = 0
+    found_password = None
 
-    print(f"Entry: {username} | {entry} | Split#{split_num}")
-    
-    for word in data_split:
-        if bcrypt.checkpw(word.encode("utf-8"), entry):
-            print(f"match found: {username} {word}")
-            return word
-    
-    print("not found")
-    return ("not found")
+    start = time.perf_counter()
+    with ProcessPoolExecutor(max_workers=workers) as exe:
+        args_iter = ((chunks[i], full_hash, stop_event) for i in range(len(chunks)))
+        futures = [exe.submit(worker_check_chunk, args) for args in args_iter]
 
-    
-def crack_password(entry):
-    
-    NUM_THREADS = 10
-    
-    # data_splits[10] = split the corpus into 10 pieces evenly
-    # the ith thread spawned will process the ith data_split
-    split_size = len(FILTERED_CORPUS) // NUM_THREADS
-    data_splits = [FILTERED_CORPUS[i:i+split_size] for i in range(0, len(FILTERED_CORPUS), split_size)]
-    
-    username = entry.split(":")[0]
-        
+        for fut in as_completed(futures):
+            try:
+                pw, attempts = fut.result()
+            except Exception as e:
+                pw, attempts = (None, 0)
+            attempts_total += attempts
+            if pw:
+                found_password = pw
+    elapsed = time.perf_counter() - start
+    return found_password, attempts_total, elapsed
+
+def main():
+    parser = argparse.ArgumentParser(description="Parallel bcrypt cracker using nltk wordlist (6-10 letters).")
+    parser.add_argument('shadow_file', help='Path to shadow file (User:$2b$.. per line)')
+    parser.add_argument('--workers', '-w', type=int, default=(os.cpu_count() or 4), help='Number of worker processes (default = CPU cores)')
+    parser.add_argument('--wordlist', '-l', type=str, default=None, help='Optional path to a custom wordlist (one word per line)')
+    parser.add_argument('--chunk', '-c', type=int, default=200, help='Chunk size (words per task). Smaller => earlier stopping, more overhead. Default 200.')
+    args = parser.parse_args()
+
+    if not os.path.exists(args.shadow_file):
+        print("Shadow file not found:", args.shadow_file)
+        return
+
+    entries = load_shadow_file(args.shadow_file)
+    if not entries:
+        print("No valid entries in shadow file.")
+        return
+
+    if args.wordlist:
+        print("Loading wordlist from file:", args.wordlist)
+        wordlist = load_wordlist_file(args.wordlist)
+    else:
+        print("Loading wordlist from nltk corpus (words). Make sure you've downloaded it.")
+        wordlist = build_wordlist_nltk()
+
+    print(f"Candidate list size (6-10 letters): {len(wordlist)}")
+    print(f"Using {args.workers} worker processes, chunk size {args.chunk}.\n")
+
     results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=NUM_THREADS) as master:
-        threads = []
-        for i in range(0, NUM_THREADS):
-            # results[i] = master.map(guess, data_splits[i], entry.Workfactor, entry.SaltHash)
-            threads.append(master.submit(guess, data_splits[i], entry, i))
-            print(f"({username}) Thread {i} spawned.")
-        
-        # if match_found_flag.wait(): #if all complete with 'fucked':
-        #     #doesnt handle case where threads complete and not found
-        #     for thread in threads:
-        #         thread.join()
-        #         results.append(thread.result)
-        
-        # for thread in concurrent.futures.as_completed(threads):
-        #     results.append(thread.result())
-            
-        # print(f"Results ({username}): ", results)
-                
-        #results: a list of results such that the ith index is the ith users's password
+    for username, full_hash in entries:
+        print(f"Cracking user: {username}  (hash prefix: {full_hash[:29]}... )")
+        pw, attempts, elapsed = crack_user_parallel(full_hash, wordlist, args.workers, chunk_size=args.chunk)
+        if pw:
+            print(f"  -> Found password: {pw}")
+        else:
+            print("  -> Password not found in candidate list")
+        print(f"     Attempts: {attempts}, Time: {elapsed:.2f} s\n")
+        results.append((username, pw, attempts, elapsed))
 
-
-def task_2_main():    
-    shadow_entries = load_shadow_file("shadow(sean2).txt")
-
-    print("Starting password cracking...")
-
-    with Pool() as pool:
-        
-        print(f"SHADOW ENTRIES ({type(shadow_entries)})): ", shadow_entries)
-        results = pool.map(crack_password, shadow_entries)
-
-    # print("Password cracking completed. Results:")
-    # for result in results:
-    #     user, password, duration = result
-    #     if password:
-    #         print(f"Cracked password for {user}: {password} in {    duration:.2f} seconds")
-    #     else:
-    #         print(f"Failed to crack password for {user} in {duration:.2f} seconds.")
+    with open('crack_results.txt', 'w', encoding='utf-8') as out:
+        out.write("username\tpassword\tattempts\ttime_s\n")
+        for u, p, a, t in results:
+            out.write(f"{u}\t{p}\t{a}\t{t:.2f}\n")
+    print("Done. Results written to crack_results.txt")
 
 if __name__ == '__main__':
-   task_2_main()
+    main()
+
