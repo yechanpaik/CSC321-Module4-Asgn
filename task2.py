@@ -1,5 +1,4 @@
 from multiprocessing import Pool
-import hashlib
 import bcrypt
 import nltk
 from nltk.corpus import words
@@ -49,8 +48,8 @@ def guess(data_split, entry, split_num):
             print(f"match found: {username} {word}")
             return word
     
-    print("fucked")
-    return ("fucked")
+    print("not found")
+    return ("not found")
 
     
 def crack_password(entry):
@@ -87,7 +86,7 @@ def crack_password(entry):
 
 
 def task_2_main():    
-    shadow_entries = load_shadow_file("shadow.txt")
+    shadow_entries = load_shadow_file("shadow(sean2).txt")
 
     print("Starting password cracking...")
 
