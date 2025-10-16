@@ -108,3 +108,17 @@ not found
 not found
 
 Total time for cracking job: 1116.95 seconds (18.62 minutes)
+
+
+[Gloin] Password found: oversave (time: 2287.60 s)
+......................................................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 2731.92 seconds (45.53 minutes)
