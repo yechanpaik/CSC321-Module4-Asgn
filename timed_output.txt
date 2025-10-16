@@ -80,3 +80,17 @@ not found
 not found
 
 Total time for cracking job: 1071.17 seconds (17.85 minutes)
+
+
+[Dwalin] Password found: drossy (time: 609.79 s)
+......................................................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 1049.78 seconds (17.50 minutes)
