@@ -52,3 +52,17 @@ not found
 not found
 
 Total time for cracking job: 511.68 seconds (8.53 minutes)
+
+
+[Kili] Password found: ossify (time: 379.42 s)
+....................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 533.42 seconds (8.89 minutes)
