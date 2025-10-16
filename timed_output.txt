@@ -66,3 +66,17 @@ not found
 not found
 
 Total time for cracking job: 533.42 seconds (8.89 minutes)
+
+
+[Balin] Password found: hangout (time: 758.84 s)
+..................................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 1071.17 seconds (17.85 minutes)
