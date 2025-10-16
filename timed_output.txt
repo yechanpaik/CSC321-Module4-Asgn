@@ -94,3 +94,17 @@ not found
 not found
 
 Total time for cracking job: 1049.78 seconds (17.50 minutes)
+
+
+[Oin] Password found: ispaghul (time: 295.95 s)
+............................................................................................................................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 1116.95 seconds (18.62 minutes)
