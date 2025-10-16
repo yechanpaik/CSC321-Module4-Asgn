@@ -1,2 +1,3 @@
 [Bilbo] Password found: welcome (time: 208.20 s)
 [Gandalf] Password found: wizard (time: 232.19 s)
+[Thorin] Password found: diamond (time: 92.25 s)
