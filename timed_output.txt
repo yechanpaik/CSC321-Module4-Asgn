@@ -136,3 +136,17 @@ not found
 not found
 
 Total time for cracking job: 2794.40 seconds (46.57 minutes)
+
+
+[Nori] Password found: swagsman (time: 920.44 s)
+............................................................................................................................................................................................................................................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 2531.65 seconds (42.19 minutes)
