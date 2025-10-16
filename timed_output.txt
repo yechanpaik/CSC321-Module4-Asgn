@@ -1,3 +1,40 @@
 [Bilbo] Password found: welcome (time: 208.20 s)
+..........not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 268.81 seconds (4.48 minutes)
+
+
 [Gandalf] Password found: wizard (time: 232.19 s)
+..........not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 271.30 seconds (4.52 minutes)
+
+
 [Thorin] Password found: diamond (time: 92.25 s)
+..............................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 259.19 seconds (4.32 minutes)
