@@ -38,3 +38,17 @@ not found
 not found
 
 Total time for cracking job: 259.19 seconds (4.32 minutes)
+
+
+[Fili] Password found: desire (time: 163.49 s)
+............................................................match found: Fili desire
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 511.68 seconds (8.53 minutes)
