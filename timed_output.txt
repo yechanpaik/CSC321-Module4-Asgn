@@ -178,3 +178,17 @@ not found
 not found
 
 Total time for cracking job: 4475.95 seconds (74.60 minutes)
+
+
+[Bofur] Password found: libellate (time: 2733.56 s)
+....................................................................................................................................................................................................................................................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 4298.24 seconds (71.64 minutes)
