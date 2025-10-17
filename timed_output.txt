@@ -164,3 +164,17 @@ not found
 not found
 
 Total time for cracking job: 4268.25 seconds (71.14 minutes)
+
+
+[Bifur] Password found: corrosible (time: 4227.68 s)
+........................................not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+not found
+
+Total time for cracking job: 4475.95 seconds (74.60 minutes)
