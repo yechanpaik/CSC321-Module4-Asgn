@@ -25,7 +25,7 @@ def load_shadow_file(file_path) -> list[str]:
 
 def notify():
     while True:
-        time.sleep(60 )
+        time.sleep(300)
         print(".", end="", flush=True)
     
 
@@ -41,11 +41,12 @@ def guess(data_split, entry, split_num):
     notifier_thread = threading.Thread(target=notify, daemon=True)
     notifier_thread.start()
 
+    start_time = time.perf_counter()
     print(f"Entry: {username} | {entry} | Split#{split_num}")
     
     for word in data_split:
         if bcrypt.checkpw(word.encode("utf-8"), entry):
-            print(f"match found: {username} {word}")
+            print(f"match found: {username} {word} in {time.perf_counter() - start_time}")
             return word
     
     print("not found")
@@ -86,7 +87,7 @@ def crack_password(entry):
 
 
 def task_2_main():    
-    shadow_entries = load_shadow_file("shadow(sean2).txt")
+    shadow_entries = load_shadow_file("shadow.txt")
 
     print("Starting password cracking...")
 
